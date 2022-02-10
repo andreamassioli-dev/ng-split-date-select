@@ -95,7 +95,8 @@ export class SplitDateSelectComponent implements ControlValueAccessor {
     this.dateForm.valueChanges.pipe(
       distinctUntilChanged()
     ).subscribe(() => {
-      this.refreshDaysByMonthAndYear();
+      this.refreshAvailableMonthsAndUpdateForm();
+      this.refreshAvailableDaysAndUpdateForm();
 
       const formValue = this.dateForm.value;
       const value = (formValue.day && formValue.month && formValue.year) ? formValue : null;
@@ -107,7 +108,7 @@ export class SplitDateSelectComponent implements ControlValueAccessor {
     });
   }
 
-  private refreshDaysByMonthAndYear(): void {
+  private refreshAvailableDaysAndUpdateForm(): void {
     const month = this.monthControl.value;
     const year = this.yearControl.value;
     const newAvailableDays = this.dateService.getDaysByMonthAndYear(month, year);
@@ -117,6 +118,19 @@ export class SplitDateSelectComponent implements ControlValueAccessor {
 
       if (this.dayControl.value > newAvailableDays) {
         this.dayControl.patchValue(null, { emitEvent: false });
+      }
+    }
+  }
+
+  private refreshAvailableMonthsAndUpdateForm(): void {
+    const year = this.yearControl.value;
+    const newAvailableMonths = this.dateService.getMonthsByYear(year);
+
+    if (newAvailableMonths != this.availableMonths.length) {
+      this.availableMonths = this.fromLength(newAvailableMonths);
+
+      if (this.monthControl.value > newAvailableMonths) {
+        this.monthControl.patchValue(null, { emitEvent: false });
       }
     }
   }

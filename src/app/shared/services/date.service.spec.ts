@@ -1,17 +1,18 @@
+import * as moment from 'moment';
 import { DateService } from "./date.service";
 
 describe('DateService', () => {
+  let service: DateService;
+
+  beforeEach(() => {
+    service = new DateService()
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy()
+  });
+
   describe('getDaysByMonthAndYear', () => {
-    let service: DateService;
-
-    beforeEach(() => {
-      service = new DateService()
-    });
-
-    it('should be created', () => {
-      expect(service).toBeTruthy()
-    });
-
     it('should return 31 if month and year are null', () => {
       expect(service.getDaysByMonthAndYear(null, null)).toEqual(31)
     });
@@ -34,11 +35,34 @@ describe('DateService', () => {
     });
 
     it('should return 28 if month is 2 and the year is not a leap year', () => {
-      expect(service.getDaysByMonthAndYear(2, 2022)).toEqual(28);
+      expect(service.getDaysByMonthAndYear(2, 2018)).toEqual(28);
     });
 
     it('should return 29 if month is 2 and the year is a leap year', () => {
       expect(service.getDaysByMonthAndYear(2, 2020)).toEqual(29);
+    });
+
+    it('should return 31 if the month is null and the year is the current year', () => {
+      const date = moment();
+      expect(service.getDaysByMonthAndYear(null, date.year())).toEqual(31);
+    });
+
+    it('should return the days until today if the month is the current month and the year is the current year', () => {
+      const date = moment();
+      expect(service.getDaysByMonthAndYear(date.month() + 1, date.year())).toEqual(date.date());
+    });
+  });
+
+  describe('getMonthsByYear', () => {
+    it('should return 12 if the year is null', () => {
+      expect(service.getMonthsByYear(null)).toEqual(12);
+    });
+    it('should return 12 if the year is prior to the current year', () => {
+      expect(service.getMonthsByYear(2021)).toEqual(12);
+    });
+    it('should return the current month if the year is the current year', () => {
+      const date = moment();
+      expect(service.getMonthsByYear(date.year())).toEqual(date.month() + 1);
     });
   })
 })
