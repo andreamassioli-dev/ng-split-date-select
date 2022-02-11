@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from "@angular/forms";
 import { Store } from "@ngrx/store";
-import { distinctUntilChanged } from "rxjs";
+import { distinctUntilChanged, Subject, takeUntil } from "rxjs";
 import { AppState } from "../../core/core.module";
 import { DateActions } from '../../core/date/store/actions';
 import { getDate } from "../../core/date/store/selectors";
@@ -19,7 +19,9 @@ import { SplitDate } from "../../models/split-date";
     </app-card>
   `
 })
-export class DateComponent implements OnInit {
+export class DateComponent implements OnInit, OnDestroy {
+
+  private destroy$ = new Subject();
 
   date: SplitDate | null = null;
   dateControl = new FormControl(null);
@@ -33,8 +35,13 @@ export class DateComponent implements OnInit {
 
   ngOnInit(): void {
     this.dateControl.valueChanges.pipe(
+      takeUntil(this.destroy$),
       distinctUntilChanged()
     ).subscribe((date: SplitDate | null) => this.store.dispatch(DateActions.changeDate({ date })));
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.complete();
   }
 
   onDateChange(date: SplitDate | null): void {

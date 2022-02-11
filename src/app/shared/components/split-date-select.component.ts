@@ -1,8 +1,8 @@
 import {
-  ChangeDetectionStrategy, Component, EventEmitter, forwardRef, HostBinding, Input, Output
+  ChangeDetectionStrategy, Component, EventEmitter, forwardRef, HostBinding, Input, OnDestroy, Output
 } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormControl, NG_VALUE_ACCESSOR } from "@angular/forms";
-import { distinctUntilChanged, pairwise, startWith } from "rxjs";
+import { distinctUntilChanged, pairwise, startWith, Subject, takeUntil } from "rxjs";
 import { SplitDate } from "../../models/split-date";
 import { DateService } from "../services/date.service";
 
@@ -35,13 +35,15 @@ import { DateService } from "../services/date.service";
     </div>
   `
 })
-export class SplitDateSelectComponent implements ControlValueAccessor {
+export class SplitDateSelectComponent implements OnDestroy, ControlValueAccessor {
 
   @Output() dateChange = new EventEmitter<SplitDate | null>();
 
   @HostBinding('style') style = 'display: block';
 
   readonly START_YEAR = 1900;
+
+  private destroy$ = new Subject();
 
   private lastValue?: SplitDate | null;
 
@@ -77,6 +79,10 @@ export class SplitDateSelectComponent implements ControlValueAccessor {
     this.reactToDateChanges();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.complete();
+  }
+
   registerOnChange(fn: any): void {
     this.onChange = fn;
   }
@@ -93,6 +99,7 @@ export class SplitDateSelectComponent implements ControlValueAccessor {
 
   private reactToDateChanges(): void {
     this.dateForm.valueChanges.pipe(
+      takeUntil(this.destroy$),
       distinctUntilChanged()
     ).subscribe(() => {
       this.refreshAvailableMonthsAndUpdateForm();
